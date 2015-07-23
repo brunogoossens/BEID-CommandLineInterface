@@ -63,7 +63,7 @@
 		<module>commons-eid-dialogs</module>
 		<module>commons-eid-jca</module>
 		<module>commons-eid-jca-all</module>
-		<module>commons-eid-tests</module>
+	 <module>beid-cli</module>
 	</modules>
 	<dependencyManagement>
 		<dependencies>

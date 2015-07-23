@@ -6,10 +6,10 @@
 		<artifactId>commons-eid</artifactId>
 		<version>0.6.2-SNAPSHOT</version>
 	</parent>
-	<name>Commons eID Integration Tests</name>
+	<name>BEID Cli</name>
 	<groupId>be.fedict.commons-eid</groupId>
-	<artifactId>commons-eid-tests</artifactId>
-	<description>Integration tests for the Commons eID project</description>
+	<artifactId>beid-cli</artifactId>
+	<description>Command line interface for BEID</description>
 	<build>
 		<plugins>
 			<plugin>
@@ -19,7 +19,29 @@
 					<skip>true</skip>
 				</configuration>
 			</plugin>
-		</plugins>
+                        <plugin>
+                            <artifactId>maven-assembly-plugin</artifactId>
+                            <configuration>
+                                <archive>
+                                    <manifest>
+                                        <mainClass>be.fedict.commons.eid.cli.CLIEvents</mainClass>
+                                    </manifest>
+                                </archive>
+                                <descriptorRefs>
+                                    <descriptorRef>jar-with-dependencies</descriptorRef>
+                                </descriptorRefs>
+                            </configuration>
+                            <executions>
+                                <execution>
+                                    <id>make-assembly</id>
+                                    <phase>package</phase>
+                                    <goals>
+                                        <goal>single</goal>
+                                    </goals>
+                                </execution>
+                            </executions>
+                        </plugin>
+                </plugins>
 	</build>
 	<profiles>
 		<profile>
@@ -52,18 +74,22 @@
 		<dependency>
 			<groupId>be.fedict.commons-eid</groupId>
 			<artifactId>commons-eid-client</artifactId>
+                        <version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>be.fedict.commons-eid</groupId>
 			<artifactId>commons-eid-consumer</artifactId>
+                        <version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>be.fedict.commons-eid</groupId>
 			<artifactId>commons-eid-dialogs</artifactId>
+                        <version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>be.fedict.commons-eid</groupId>
 			<artifactId>commons-eid-jca</artifactId>
+                        <version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
@@ -100,5 +126,11 @@
 			<artifactId>bcpkix-jdk15on</artifactId>
 			<scope>test</scope>
 		</dependency>
+	 <dependency>
+	  <groupId>be.fedict.commons-eid</groupId>
+	  <artifactId>commons-eid-tests</artifactId>
+	  <version>0.5.4-SNAPSHOT</version>
+	  <type>jar</type>
+	 </dependency>
 	</dependencies>
 </project>
