@@ -19,29 +19,29 @@
 					<skip>true</skip>
 				</configuration>
 			</plugin>
-                        <plugin>
-                            <artifactId>maven-assembly-plugin</artifactId>
-                            <configuration>
-                                <archive>
-                                    <manifest>
-                                        <mainClass>be.fedict.commons.eid.cli.CLIEvents</mainClass>
-                                    </manifest>
-                                </archive>
-                                <descriptorRefs>
-                                    <descriptorRef>jar-with-dependencies</descriptorRef>
-                                </descriptorRefs>
-                            </configuration>
-                            <executions>
-                                <execution>
-                                    <id>make-assembly</id>
-                                    <phase>package</phase>
-                                    <goals>
-                                        <goal>single</goal>
-                                    </goals>
-                                </execution>
-                            </executions>
-                        </plugin>
-                </plugins>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<mainClass>be.fedict.commons.eid.cli.CLIEvents</mainClass>
+						</manifest>
+					</archive>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+				</configuration>
+				<executions>
+					<execution>
+						<id>make-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
 	</build>
 	<profiles>
 		<profile>
@@ -74,22 +74,22 @@
 		<dependency>
 			<groupId>be.fedict.commons-eid</groupId>
 			<artifactId>commons-eid-client</artifactId>
-                        <version>${project.version}</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>be.fedict.commons-eid</groupId>
 			<artifactId>commons-eid-consumer</artifactId>
-                        <version>${project.version}</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>be.fedict.commons-eid</groupId>
 			<artifactId>commons-eid-dialogs</artifactId>
-                        <version>${project.version}</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>be.fedict.commons-eid</groupId>
 			<artifactId>commons-eid-jca</artifactId>
-                        <version>${project.version}</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
@@ -126,11 +126,10 @@
 			<artifactId>bcpkix-jdk15on</artifactId>
 			<scope>test</scope>
 		</dependency>
-	 <dependency>
-	  <groupId>be.fedict.commons-eid</groupId>
-	  <artifactId>commons-eid-tests</artifactId>
-	  <version>0.5.4-SNAPSHOT</version>
-	  <type>jar</type>
-	 </dependency>
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20140107</version>
+		</dependency>
 	</dependencies>
 </project>
