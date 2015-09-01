@@ -42,235 +42,207 @@ import javax.smartcardio.CardException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.StringUtils;
 import sun.misc.IOUtils;
+import org.json.JSONObject;
 
 /*
  * mixed asynchronous detection of CardTerminals, BeID and non-BeID cards,
  * using a BeIDCardManager with your own CardAndTerminalManager
  */
-public class CLIEvents
-		implements
-			BeIDCardEventsListener,
-			CardEventsListener,
-			CardTerminalEventsListener {
-	private void start() throws InterruptedException {
-		// -------------------------------------------------------------------------------------------------------
-		// instantiate a CardAndTerminalManager with default settings (no
-		// logging, default timeout)
-		// -------------------------------------------------------------------------------------------------------
-		final CardAndTerminalManager cardAndTerminalManager = new CardAndTerminalManager();
+public class CLIEvents implements BeIDCardEventsListener, CardEventsListener, CardTerminalEventsListener {
+    private void start() throws InterruptedException {
+        // -------------------------------------------------------------------------------------------------------
+        // instantiate a CardAndTerminalManager with default settings (no
+        // logging, default timeout)
+        // -------------------------------------------------------------------------------------------------------
+        final CardAndTerminalManager cardAndTerminalManager = new CardAndTerminalManager();
 
-		// -------------------------------------------------------------------------------------------------------
-		// instantiate a BeIDCardManager, pass it our CardAndTerminalManager to
-		// use
-		// -------------------------------------------------------------------------------------------------------
-		final BeIDCardManager beIDCardManager = new BeIDCardManager(
-				cardAndTerminalManager);
+        // -------------------------------------------------------------------------------------------------------
+        // instantiate a BeIDCardManager, pass it our CardAndTerminalManager to
+        // use
+        // -------------------------------------------------------------------------------------------------------
+        final BeIDCardManager beIDCardManager = new BeIDCardManager(cardAndTerminalManager);
 
-		// -------------------------------------------------------------------------------------------------------
-		// register ourselves as BeIDCardEventsListener to get BeID card insert
-		// and remove events
-		// -------------------------------------------------------------------------------------------------------
-		beIDCardManager.addBeIDCardEventListener(this);
+        // -------------------------------------------------------------------------------------------------------
+        // register ourselves as BeIDCardEventsListener to get BeID card insert
+        // and remove events
+        // -------------------------------------------------------------------------------------------------------
+        beIDCardManager.addBeIDCardEventListener(this);
 
-		// -------------------------------------------------------------------------------------------------------
-		// register ourselves as CardEventsListener to the BeIDCardManager, to
-		// get events of *other* cards
-		// being inserted/removed (if we would register ourselves to the
-		// CardAndTerminalManager
-		// for this, we would get 2 events when a BeID was inserted, one for the
-		// BeID, one for the Card by itself,
-		// because CardAndTerminalManager cannot distinguish between them, and
-		// BeIDCardManager can)
-		// -------------------------------------------------------------------------------------------------------
-		beIDCardManager.addOtherCardEventListener(this);
-		// ^^^^^^^^^^^^^^^ // see above
+        // -------------------------------------------------------------------------------------------------------
+        // register ourselves as CardEventsListener to the BeIDCardManager, to
+        // get events of *other* cards
+        // being inserted/removed (if we would register ourselves to the
+        // CardAndTerminalManager
+        // for this, we would get 2 events when a BeID was inserted, one for the
+        // BeID, one for the Card by itself,
+        // because CardAndTerminalManager cannot distinguish between them, and
+        // BeIDCardManager can)
+        // -------------------------------------------------------------------------------------------------------
+        beIDCardManager.addOtherCardEventListener(this);
+        // ^^^^^^^^^^^^^^^ // see above
 
-		// -------------------------------------------------------------------------------------------------------
-		// register ourselves as CardTerminalEventsListener to get CardTerminal
-		// attach and detach events
-		// -------------------------------------------------------------------------------------------------------
-		cardAndTerminalManager.addCardTerminalListener(this);
+        // -------------------------------------------------------------------------------------------------------
+        // register ourselves as CardTerminalEventsListener to get CardTerminal
+        // attach and detach events
+        // -------------------------------------------------------------------------------------------------------
+        cardAndTerminalManager.addCardTerminalListener(this);
 
-		// System.out
-		//		.println("First, you'll see events for terminals and Cards that were already present");
+        // System.out
+        //      .println("First, you'll see events for terminals and Cards that were already present");
 
-		// -------------------------------------------------------------------------------------------------------
-		// start the BeIDCardManager instance
-		// -------------------------------------------------------------------------------------------------------
-		beIDCardManager.start();
+        // -------------------------------------------------------------------------------------------------------
+        // start the BeIDCardManager instance
+        // -------------------------------------------------------------------------------------------------------
+        beIDCardManager.start();
 
-		// -------------------------------------------------------------------------------------------------------
-		// start the CardAndTerminalManager
-		// -------------------------------------------------------------------------------------------------------
-		cardAndTerminalManager.start();
+        // -------------------------------------------------------------------------------------------------------
+        // start the CardAndTerminalManager
+        // -------------------------------------------------------------------------------------------------------
+        cardAndTerminalManager.start();
 
-		// -------------------------------------------------------------------------------------------------------
-		// the main thread goes off and does other things (for this example,
-		// just loop and sleep)
-		// -------------------------------------------------------------------------------------------------------
-		for (;;) {
-			Thread.sleep(2000);
-		}
-	}
-
-	// ------------------------------------------------------------------------------------------------------------
-
-	// ------------------------------------------------------------------------------------------------------------
-	// these respond to CardTerminals being attached and detached
-	// ------------------------------------------------------------------------------------------------------------
-
-	@Override
-	public void terminalAttached(final CardTerminal cardTerminal) {
-                System.out.println("{\"action\":\"terminalAttached\"}");
-		// System.out.println("CardTerminal [" + cardTerminal.getName()
-		//		+ "] attached\n");
-	}
-
-	@Override
-	public void terminalDetached(final CardTerminal cardTerminal) {
-                System.out.println("{\"action\":\"terminalDetached\"}");
-		//System.out.println("CardTerminal [" + cardTerminal.getName()
-		//		+ "] detached\n");
-	}
-
-	@Override
-	public void terminalEventsInitialized() {
-		// System.out
-		//		.println("From now on you'll see terminals being Attached/Detached");
-	}
-
-	// ------------------------------------------------------------------------------------------------------------
-	// these respond to BeID cards being inserted and removed
-	// ------------------------------------------------------------------------------------------------------------
-
-	@Override
-	public void eIDCardRemoved(final CardTerminal cardTerminal,
-			final BeIDCard card) {
-                System.out.println("{\"event\":\"cardRemoved\"}");
-		//System.out.println("BeID Card Removed From Card Termimal ["
-		//		+ cardTerminal.getName() + "]\n");
-	}
-
-	@Override
-	public void eIDCardInserted(final CardTerminal cardTerminal,
-			final BeIDCard card) {
-                        System.out.println("{\"event\":\"cardInsered\"}");
-		//System.out.println("BeID Card Inserted Into Card Termimal ["
-		//		+ cardTerminal.getName() + "]\n");
-            try {
-                cardInfo(card);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(CLIEvents.class.getName()).log(Level.SEVERE, null, ex);
-            }
-	}
-
-	@Override
-	public void eIDCardEventsInitialized() {
-		// System.out
-		// 		.println("From now on you'll see BeID Cards being Inserted/Removed");
-	}
-
-	// ------------------------------------------------------------------------------------------------------------
-	// these respond to non-BeID cards being inserted and removed
-	// (because we registered with a BeIDCardManager, not a
-	// CardAndTerminalManager)
-	// ------------------------------------------------------------------------------------------------------------
-
-	@Override
-	public void cardInserted(final CardTerminal cardTerminal, final Card card) {
-		if (card != null) {
-                        System.out.println("{\"event\":\"invalidBeidCard\"}");
-			// System.out.println("Other Card ["
-			//		+ String.format("%x", new BigInteger(1, card.getATR()
-			//				.getBytes())) + "] Inserted Into Terminal ["
-			//		+ cardTerminal.getName() + "]");
-		} else {
-                        System.out.println("{\"event\":\"invalidBeidCard\"}");
-			//System.out.println("Other Card Inserted Into Terminal ["
-			//		+ cardTerminal.getName() + "] but failed to connect()");
-		}
-	}
-
-	@Override
-	public void cardRemoved(final CardTerminal cardTerminal) {
-                System.out.println("{\"event\":\"invalidBeidCardRemoved\"}");
-		// System.out.println("Other Card Removed From [" + cardTerminal.getName()
-		//		+ "]");
-	}
-
-	@Override
-	public void cardEventsInitialized() {
-		// System.out
-		//		.println("From now on you'll see Non-BeID Cards being Inserted/Removed");
-	}
-        
-        public void cardInfo(final BeIDCard card) throws InterruptedException {
-
-            try {
-                    final byte[] idData = card.readFile(FileType.Identity);
-                    final Identity id = TlvParser.parse(idData, Identity.class);
-                    
-                    byte[] identityTLV=card.readFile(FileType.Identity);
-		    byte[] addressTLV=card.readFile(FileType.Address);
-		
-                    Address address=TlvParser.parse(addressTLV,Address.class);
-                    
-                    final byte[] photoFile = card.readFile(FileType.Photo);
-                    String image = Base64.encodeBase64String(photoFile).trim();
-
-                    System.out.println(
-                        "{"
-                            + "\"event\":\"cardData\","
-                            + "\"data\":{"
-                                + "\"cardNumber\":\"" + id.cardNumber + "\","
-                                + "\"chipNumber\":\"" + id.chipNumber + "\","
-                                + "\"cardValidityDateBegin\":\"" + transformDate(id.cardValidityDateBegin) + "\","
-                                + "\"cardValidityDateEnd\":\"" + transformDate(id.cardValidityDateEnd) + "\","
-                                + "\"cardDeliveryMunicipality\":\"" + id.cardDeliveryMunicipality + "\","
-                                + "\"nationalNumber\":\"" + id.nationalNumber + "\","
-                                + "\"firstname\":\"" + id.firstName + "\","
-                                + "\"name\":\""+id.name+"\","
-                                + "\"middleName\":\""+id.middleName+"\","
-                                + "\"nationality\":\""+id.nationality+"\","
-                                + "\"placeOfBirth\":\""+id.placeOfBirth+"\","
-                                + "\"dateOfBirth\":\""+transformDate(id.dateOfBirth)+"\","
-                                + "\"gender\":\""+id.gender+"\","
-                                + "\"nobleCondition\":\""+id.nobleCondition+"\","
-                                + "\"documentType\":\""+id.documentType+"\","
-                                + "\"specialStatus\":\""+id.specialStatus+"\","
-                                + "\"photoBase64\":\""+image+"\","
-                                + "\"duplicate\":\""+id.duplicate+"\","
-                                + "\"specialOrganisation\":\""+id.specialOrganisation+"\","
-                                + "\"memberOfFamily\":\""+id.memberOfFamily+"\","
-                                //+ "\"data\":\""+Arrays.toString(id.data)+"\","
-                                + "\"streetAndNumber\":\""+address.streetAndNumber+"\","
-                                + "\"zip\":\""+address.zip+"\","
-                                + "\"municipality\":\""+address.municipality+"\""
-                                //+ "\"addressData\":\""+Arrays.toString(address.data)+"\""
-                            + "}"
-                        + "}");
-            } catch (final CardException cex) {
-                    // TODO Auto-generated catch block
-                    cex.printStackTrace();
-            } catch (final IOException iox) {
-                    // TODO Auto-generated catch block
-                    iox.printStackTrace();
-            }
-
-	}
-        
-        public static String transformDate(final Calendar calendar) {
-            Date date = calendar.getTime();
-            String formatted = new SimpleDateFormat("yyyy-MM-dd").format(date);
-            return formatted;
-            //String formatted = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(date);/** Transform Calendar to ISO 8601 string. */
-            //return formatted.substring(0, 22) + ":" + formatted.substring(22);
+        // -------------------------------------------------------------------------------------------------------
+        // the main thread goes off and does other things (for this example,
+        // just loop and sleep)
+        // -------------------------------------------------------------------------------------------------------
+        for (;;) {
+            Thread.sleep(2000);
         }
+    }
 
-	// -------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------
 
-	public static void main(final String[] args) throws InterruptedException {
-		new CLIEvents().start();
-	}
+    // ------------------------------------------------------------------------------------------------------------
+    // these respond to CardTerminals being attached and detached
+    // ------------------------------------------------------------------------------------------------------------
+
+    @Override
+    public void terminalAttached(final CardTerminal cardTerminal) {
+        System.out.println(new JSONObject().put("event", "terminalAttached").toString());
+    }
+
+    @Override
+    public void terminalDetached(final CardTerminal cardTerminal) {
+        System.out.println(new JSONObject().put("event", "terminalDetached").toString());
+    }
+
+    @Override
+    public void terminalEventsInitialized() {
+        System.out.println(new JSONObject().put("event", "terminalEventsInitialized").toString());
+    }
+
+    // ------------------------------------------------------------------------------------------------------------
+    // these respond to BeID cards being inserted and removed
+    // ------------------------------------------------------------------------------------------------------------
+
+    @Override
+    public void eIDCardRemoved(final CardTerminal cardTerminal, final BeIDCard card) {
+        System.out.println(new JSONObject().put("event", "eIDCardRemoved").toString());
+    }
+
+    @Override
+    public void eIDCardInserted(final CardTerminal cardTerminal, final BeIDCard card) {
+        System.out.println(new JSONObject().put("event", "eIDCardInserted").toString());
+
+        try {
+            getBeIDCardInfo(card);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(CLIEvents.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    @Override
+    public void eIDCardEventsInitialized() {
+        System.out.println(new JSONObject().put("event", "eIDCardEventsInitialized").toString());
+    }
+
+    // ------------------------------------------------------------------------------------------------------------
+    // these respond to non-BeID cards being inserted and removed
+    // (because we registered with a BeIDCardManager, not a
+    // CardAndTerminalManager)
+    // ------------------------------------------------------------------------------------------------------------
+
+    @Override
+    public void cardInserted(final CardTerminal cardTerminal, final Card card) {
+        if (card != null) {
+            System.out.println(new JSONObject().put("event", "cardInserted").toString());
+        }
+    }
+
+    @Override
+    public void cardRemoved(final CardTerminal cardTerminal) {
+        System.out.println(new JSONObject().put("event", "cardRemoved").toString());
+    }
+
+    @Override
+    public void cardEventsInitialized() {
+        System.out.println(new JSONObject().put("event", "cardEventsInitialized").toString());
+    }
+
+    public void getBeIDCardInfo(final BeIDCard card) throws InterruptedException {
+
+            try {
+                final byte[] idData = card.readFile(FileType.Identity);
+                Identity id = TlvParser.parse(idData, Identity.class);
+
+                final byte[] addressTLV = card.readFile(FileType.Address);
+                final Address address = TlvParser.parse(addressTLV, Address.class);
+
+                final byte[] photoFile = card.readFile(FileType.Photo);
+                final String photoString = Base64.encodeBase64String(photoFile).trim();
+
+                JSONObject output = new JSONObject();
+                JSONObject data = new JSONObject();
+
+                data
+                    .put("cardNumber", id.cardNumber)
+                    .put("chipNumber", id.chipNumber)
+                    .put("cardValidityDateBegin", transformDate(id.cardValidityDateBegin))
+                    .put("cardValidityDateEnd", transformDate(id.cardValidityDateEnd))
+                    .put("cardDeliveryMunicipality", id.cardDeliveryMunicipality)
+                    .put("nationalNumber", id.nationalNumber)
+                    .put("firstName", id.firstName)
+                    .put("name", id.name)
+                    .put("middleName", id.middleName)
+                    .put("nationality", id.nationality)
+                    .put("placeOfBirth", id.placeOfBirth)
+                    .put("dateOfBirth", transformDate(id.dateOfBirth))
+                    .put("gender", id.gender)
+                    .put("nobleCondition", id.nobleCondition)
+                    .put("documentType", id.documentType)
+                    .put("specialStatus", id.specialStatus)
+                    .put("photoString", photoString)
+                    .put("duplicate", id.duplicate)
+                    .put("specialOrganisation", id.specialOrganisation)
+                    .put("memberOfFamily", id.memberOfFamily)
+                    .put("streetAndNumber", address.streetAndNumber)
+                    .put("zip", address.zip)
+                    .put("municipality", address.municipality);
+
+                output
+                    .put("event", "BeIDCardData")
+                    .put("data", data);
+
+                System.out.println(output.toString());
+        } catch (final CardException cex) {
+            cex.printStackTrace();
+        } catch (final IOException iox) {
+            iox.printStackTrace();
+        }
+    }
+
+    protected static String transformDate(final Calendar calendar) {
+        Date date = calendar.getTime();
+        String formatted = new SimpleDateFormat("yyyy-MM-dd").format(date);
+
+        return formatted;
+        //String formatted = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(date);/** Transform Calendar to ISO 8601 string. */
+        //return formatted.substring(0, 22) + ":" + formatted.substring(22);
+    }
+
+    // -------------------------------------------------------------------------------------------------------
+
+    public static void main(final String[] args) throws InterruptedException {
+        new CLIEvents().start();
+    }
 
 }
