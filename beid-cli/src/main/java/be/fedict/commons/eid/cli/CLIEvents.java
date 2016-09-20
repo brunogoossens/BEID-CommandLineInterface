@@ -147,6 +147,7 @@ public class CLIEvents implements BeIDCardEventsListener, CardEventsListener, Ca
             getBeIDCardInfo(card);
         } catch (InterruptedException ex) {
             Logger.getLogger(CLIEvents.class.getName()).log(Level.SEVERE, null, ex);
+            System.exit(1);
         }
     }
 
@@ -225,8 +226,10 @@ public class CLIEvents implements BeIDCardEventsListener, CardEventsListener, Ca
                 System.out.println(output.toString());
         } catch (final CardException cex) {
             cex.printStackTrace();
+            System.exit(1);
         } catch (final IOException iox) {
             iox.printStackTrace();
+            System.exit(1);
         }
     }
 
